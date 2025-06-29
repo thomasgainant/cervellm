@@ -1,0 +1,29 @@
+{
+  "name": "cervellm",
+  "version": "0.0.1",
+  "description": "Tranformer algorithm in Typescript",
+  "main": "dist/app.js",
+  "scripts": {
+    "start": "tsc && node dist/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thomasgainant/cervellm.git"
+  },
+  "keywords": [
+    "transformer",
+    "ai",
+    "llm"
+  ],
+  "author": "Thomas Gainant",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/thomasgainant/cervellm/issues"
+  },
+  "homepage": "https://github.com/thomasgainant/cervellm#readme",
+  "devDependencies": {
+    "@types/node": "^24.0.7",
+    "typescript": "^5.8.3"
+  }
+}
