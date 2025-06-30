@@ -1,3 +1,5 @@
+import * as fs from "fs";
+
 export class CervellmTransformer {
   vocab: string[];
   vocabSize: number;
@@ -9,20 +11,24 @@ export class CervellmTransformer {
   Wv: number[][];
   Wo: number[][]; // projection vers vocab
 
-  constructor(vocab: string[], embedSize = 8) {
+  constructor(vocab: string[], embedSize?:number | null) {
     this.vocab = vocab;
     this.vocabSize = vocab.length;
-    this.embedSize = embedSize;
+    this.embedSize = embedSize != null ? embedSize : this.vocabSize;
 
     // Initialisation des matrices aléatoires
-    this.Wq = this.randomMatrix(embedSize, embedSize);
-    this.Wk = this.randomMatrix(embedSize, embedSize);
-    this.Wv = this.randomMatrix(embedSize, embedSize);
-    this.Wo = this.randomMatrix(embedSize, this.vocabSize);
+    this.Wq = this.randomMatrix(this.embedSize, this.embedSize);
+    this.Wk = this.randomMatrix(this.embedSize, this.embedSize);
+    this.Wv = this.randomMatrix(this.embedSize, this.embedSize);
+    this.Wo = this.randomMatrix(this.embedSize, this.vocabSize);
   }
 
   encode(input: string): number[] {
-    return input.split('').map(ch => this.vocab.indexOf(ch));
+    return input.split('').map(ch => {
+      const idx = this.vocab.indexOf(ch);
+      if (idx === -1) throw new Error(`Unknown character: "${ch}"`);
+      return idx;
+    });
   }
 
   decode(indices: number[]): string {
@@ -44,8 +50,12 @@ export class CervellmTransformer {
   }
 
   dot(a: number[], b: number[]): number {
+    if (a.length !== b.length) {
+      throw new Error(`Dimension mismatch: dot(${a.length}, ${b.length})`);
+    }
     return a.reduce((sum, val, i) => sum + val * b[i], 0);
   }
+  
 
   matMul(a: number[][], b: number[][]): number[][] {
     return a.map(row =>
@@ -116,4 +126,27 @@ export class CervellmTransformer {
       Array.from({ length: cols }, () => Math.random() * 0.02 - 0.01)
     );
   }
+
+  saveModel(path: string): void {
+    const data = {
+      vocab: this.vocab,
+      embedSize: this.embedSize,
+      Wq: this.Wq,
+      Wk: this.Wk,
+      Wv: this.Wv,
+      Wo: this.Wo
+    };
+    fs.writeFileSync(path, JSON.stringify(data));
+  }
+  
+  static loadModel(path: string): CervellmTransformer {
+    const fs = require("fs");
+    const data = JSON.parse(fs.readFileSync(path, "utf8"));
+    const model = new CervellmTransformer(data.vocab, data.embedSize);
+    model.Wq = data.Wq;
+    model.Wk = data.Wk;
+    model.Wv = data.Wv;
+    model.Wo = data.Wo;
+    return model;
+  }  
 }
