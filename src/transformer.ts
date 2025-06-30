@@ -44,10 +44,11 @@ export class CervellmTransformer {
   }
 
   softmax(arr: number[]): number[] {
-    const exps = arr.map(x => Math.exp(x));
+    const maxVal = Math.max(...arr);
+    const exps = arr.map(x => Math.exp(x - maxVal));
     const sum = exps.reduce((a, b) => a + b, 0);
     return exps.map(e => e / sum);
-  }
+  }  
 
   dot(a: number[], b: number[]): number {
     if (a.length !== b.length) {
@@ -101,7 +102,9 @@ export class CervellmTransformer {
   }
 
   loss(pred: number[], targetIndex: number): number {
-    return -Math.log(pred[targetIndex] + 1e-9); // cross-entropy
+    let loss = -Math.log(pred[targetIndex] + 1e-9);
+    if (!isFinite(loss)) throw new Error("Loss exploded");
+    return loss; // cross-entropy
   }
 
   updateWeights(input: string, targetChar: string, learningRate = 0.1) {
@@ -116,7 +119,9 @@ export class CervellmTransformer {
         this.Wo[i][j] += epsilon;
         const newLoss = this.loss(this.predict(input), targetIdx);
         const grad = (newLoss - originalLoss) / epsilon;
-        this.Wo[i][j] -= epsilon + learningRate * grad;
+        //console.log(`Grad[${i}][${j}] = ${grad.toFixed(6)}, Wo = ${this.Wo[i][j].toFixed(6)}`);
+        this.Wo[i][j] -= epsilon;
+        this.Wo[i][j] -= learningRate * grad;
       }
     }
   }

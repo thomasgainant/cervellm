@@ -17,14 +17,14 @@ if(!fs.existsSync("model.json")){
   ];
 
   //Training loop
-  for (let epoch = 0; epoch < 30000; epoch++) {
+  for (let epoch = 0; epoch < 10000; epoch++) {
     let totalLoss = 0;
     for (const sample of trainingData) {
       const pred = model.predict(sample.input);
       const targetIdx = vocab.indexOf(sample.target)
       let loss = model.loss(pred, targetIdx);
       totalLoss += loss;
-      model.updateWeights(sample.input, sample.target, 0.1);
+      model.updateWeights(sample.input, sample.target, 0.01);
     }
     if (epoch % 10 === 0) {
       console.log(`Epoch ${epoch}, Loss: ${totalLoss.toFixed(4)}`);
